@@ -43,7 +43,7 @@ public class PubSub8 {
     }
 
     private static Publisher<Integer> reducePub(Publisher<Integer> pub, int i, BiFunction<Integer, Integer, Integer> bf) {
-        return sub -> pub.subscribe(new DelegateSub(sub) {
+        return sub -> pub.subscribe(new DelegateSub1(sub) {
             int result = i;
 
             @Override
@@ -66,7 +66,7 @@ public class PubSub8 {
     // 6 -> (6, 4) -> 6 + 4 = 10
 
     private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
-        return sub -> pub.subscribe(new DelegateSub(sub) {
+        return sub -> pub.subscribe(new DelegateSub1(sub) {
             int sum = 0;
             @Override
             public void onNext(Integer integer) {
@@ -82,7 +82,7 @@ public class PubSub8 {
     }
 
     private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f) {
-        return sub -> pub.subscribe(new DelegateSub(sub) {
+        return sub -> pub.subscribe(new DelegateSub1(sub) {
             @Override
             public void onNext(Integer integer) {
                 sub.onNext(f.apply(integer));

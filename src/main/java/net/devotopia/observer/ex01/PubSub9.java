@@ -6,6 +6,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,8 +28,8 @@ import java.util.stream.Stream;
  * <p>
  * 1. map (d1 -> f -> d2)
  */
-public class PubSub7 {
-    private static final Logger logger = LoggerFactory.getLogger(PubSub7.class.getName());
+public class PubSub9 {
+    private static final Logger logger = LoggerFactory.getLogger(PubSub9.class.getName());
 
     public static void main(String[] args) {
         Iterable<Integer> iter = Stream.iterate(1, a -> a + 1).limit(10)
@@ -36,10 +37,33 @@ public class PubSub7 {
 
         Publisher<Integer> pub = iterPub(iter);
 
-        Publisher<Integer> mapPub = sumPub(pub);
+        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10);
 
         mapPub.subscribe(logSub());
     }
+
+    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int i, BiFunction<Integer, Integer, Integer> bf) {
+        return sub -> pub.subscribe(new DelegateSub1(sub) {
+            int result = i;
+
+            @Override
+            public void onNext(Integer integer) {
+                result = bf.apply(result, integer);
+            }
+
+            @Override
+            public void onComplete() {
+                sub.onNext(result);
+                sub.onComplete();
+            }
+        });
+    }
+
+    // 1, 2, 3, 4, 5
+    // 0 -> (0, 1) -> 0 + 1 = 1
+    // 1 -> (1, 2) -> 1 + 2 = 3
+    // 3 -> (3, 3) -> 3 + 3 = 6
+    // 6 -> (6, 4) -> 6 + 4 = 10
 
     private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
         return sub -> pub.subscribe(new DelegateSub1(sub) {
@@ -57,17 +81,17 @@ public class PubSub7 {
         });
     }
 
-    private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f) {
-        return sub -> pub.subscribe(new DelegateSub1(sub) {
+    private static <T> Publisher<T> mapPub(Publisher<T> pub, Function<T, T> f) {
+        return sub -> pub.subscribe(new DelegateSub2<T>(sub) {
             @Override
-            public void onNext(Integer integer) {
-                sub.onNext(f.apply(integer));
+            public void onNext(T i) {
+                sub.onNext(f.apply(i));
             }
         });
     }
 
-    private static Subscriber<Integer> logSub() {
-        return new Subscriber<Integer>() {
+    private static <T> Subscriber<T> logSub() {
+        return new Subscriber<T>() {
             @Override
             public void onSubscribe(Subscription subscription) {
                 logger.debug("onComplete");
@@ -75,8 +99,8 @@ public class PubSub7 {
             }
 
             @Override
-            public void onNext(Integer integer) {
-                logger.debug("onNext: {}", integer);
+            public void onNext(T i) {
+                logger.debug("onNext: {}", i);
             }
 
             @Override

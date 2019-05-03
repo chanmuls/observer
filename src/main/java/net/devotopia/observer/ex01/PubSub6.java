@@ -44,7 +44,7 @@ public class PubSub6 {
     }
 
     private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f) {
-        return sub -> pub.subscribe(new DelegateSub(sub) {
+        return sub -> pub.subscribe(new DelegateSub1(sub) {
             @Override
             public void onNext(Integer integer) {
                 sub.onNext(f.apply(integer));

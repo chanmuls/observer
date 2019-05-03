@@ -3,10 +3,10 @@ package net.devotopia.observer.ex01;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class DelegateSub implements Subscriber<Integer> {
+public class DelegateSub2<T> implements Subscriber<T> {
     private final Subscriber sub;
 
-    public DelegateSub(Subscriber sub) {
+    public DelegateSub2(Subscriber<? super T> sub) {
         this.sub = sub;
     }
 
@@ -16,8 +16,8 @@ public class DelegateSub implements Subscriber<Integer> {
     }
 
     @Override
-    public void onNext(Integer integer) {
-        sub.onNext(integer);
+    public void onNext(T i) {
+        sub.onNext(i);
     }
 
     @Override
